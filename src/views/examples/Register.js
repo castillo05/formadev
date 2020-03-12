@@ -35,7 +35,8 @@ import {
   Spinner,
   FormFeedback, 
   FormText,
-  Tooltip
+  Tooltip,
+  Alert
 } from "reactstrap";
 
 // Joi validation
@@ -72,6 +73,11 @@ const Register=(props)=> {
         setTimeout(()=>{
           console.log(newUser);
           setLoading(false)
+          setAlert({
+            status:true,
+            type:'primary',
+            text:'Bienvenido a formDev Inicia sesión para disfrutar de una nueva experiencia de aprendizaje'
+          })
         },2000)
         
       }
@@ -220,6 +226,10 @@ const Register=(props)=> {
                     <FormFeedback>{input.errors.password}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
+                {(alert.status) &&
+                <Alert color={alert.type}>
+                  {alert.text}
+                </Alert>}
                 <div className="text-muted font-italic">
                   <small>
                     password strength:{" "}
