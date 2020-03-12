@@ -59,7 +59,14 @@ const Login =(props)=> {
     e.preventDefault()
   
     if(submit()){
-      console.log('Login');
+      const login={
+        email:input.email,
+        password:input.password
+      }
+      if(login.email==='test@test.com' && login.password==='test'){
+         console.log(login);
+      }
+     
     }
   }
  
