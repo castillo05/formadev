@@ -263,7 +263,7 @@ const Register=(props)=> {
                 <div className="text-center">
                   <Button onClick={(e)=>crearUsuario(e)} className="mt-4" color="primary" type="button">
                     {loading ? <div className='d-flex align-items-center justify-content-center'>
-                    <Spinner type="grow" color="dark" />
+                    <Spinner color="dark" style={{ width: '3rem', height: '3rem' }} />{' '}
                     </div> :'Create account'}
                     
                   </Button>
