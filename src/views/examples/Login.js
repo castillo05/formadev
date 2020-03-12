@@ -16,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React,{useState} from "react";
 
 // reactstrap components
 import {
@@ -32,7 +32,9 @@ import {
   InputGroup,
   Row,
   Col,
-  FormFeedback
+  FormFeedback,
+  Spinner,
+  Progress
 } from "reactstrap";
 
 // Utils
@@ -47,6 +49,8 @@ const {useInput, validation} = Utils;
 
 
 const Login =(props)=> {
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress]=useState(5)
 
   const schema = validation.createSchema({
     email:validation.schema.email,
@@ -64,6 +68,18 @@ const Login =(props)=> {
         password:input.password
       }
       if(login.email==='test@test.com' && login.password==='test'){
+        setLoading(true)
+        for (let i = 0; i <= 100; i++) {
+          
+          setTimeout(()=>{
+            setProgress(i)
+          },200)
+          
+        }
+        setTimeout(()=>{
+          setLoading(false)
+          setProgress(0)
+        },3000)
          console.log(login);
       }
      
@@ -166,9 +182,11 @@ const Login =(props)=> {
                   </label>
                 </div>
                 <div className="text-center">
-                  <Button onClick={(e)=>loginUser(e)} className="my-4" color="primary" type="button">
-                    Sign in
+                  <Button onClick={(e)=>loginUser(e)} className="my-4" color="primary" disabled={loading} type="button">
+                    
+                    Sing In
                   </Button>
+                  {loading ? <Progress striped color="success" value={progress} /> : null}
                 </div>
               </Form>
             </CardBody>
