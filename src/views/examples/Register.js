@@ -51,6 +51,9 @@ const Register=(props)=> {
   const [tooltipOpen, setTooltipOpen] = useState(false)
   const [verPass, setVerPass] = useState(false)
   const [alert, setAlert] = useState({ status: false, type: '', text: '' })
+  // Verify I agree 
+  const [check, setCheck]=useState(false);
+  const [enabled,setEnabled]=useState(true);
   const toggle = () => setTooltipOpen(!tooltipOpen)
   const schema = Joi.object().keys({
     username:validation.schema.username,
@@ -85,36 +88,25 @@ const Register=(props)=> {
       console.log(error)
     }
   }
+// I agree Policy 
+  const igreePolicy=(e)=>{
+  
+    setCheck(e.target.checked)
+    if(!e.target.checked){
+      setEnabled(true)
+      setAlert({
+        status:true,
+        type:'danger',
+        text:'Es necesario que acepte nuestras politicas de privacidad'
+      })
+    }else{
+      setEnabled(false)
+      setAlert({
+        status:false
+      })
+    }
+  }
  
-//   // Obteniendo datos del formulario actualiza el state
-//  const handleChangeEvent=e=>{
-//     // this.setState({
-//     //   form:{
-//     //     ...this.state.form,
-//     //     [e.target.name]:e.target.value
-//     //   }
-//     // })
-//   }
-
-//   // Envio de datos
-//   const handleSubmit=e=>{
-//     // e.preventDefault();
-//     // this.setState({
-//     //   loading:true
-//     // })
-
-//     // const newUser = {
-//     //   firstName: input.UserName,
-//     //   lastName: input.UserlastName,
-//     //   email: input.Email,
-//     //   password: input.password
-//     // }
-
-//     // setTimeout(()=>{
-//     //   this.setState({loading:false});
-//     // },5000);
-//     // console.log(this.state.form);
-  // }
 
     return (
       <>
@@ -245,6 +237,9 @@ const Register=(props)=> {
                         className="custom-control-input"
                         id="customCheckRegister"
                         type="checkbox"
+                        name="policy"
+                        onChange={(e)=>igreePolicy(e)}
+                        checked={check}
                       />
                       <label
                         className="custom-control-label"
@@ -261,7 +256,7 @@ const Register=(props)=> {
                   </Col>
                 </Row>
                 <div className="text-center">
-                  <Button onClick={(e)=>crearUsuario(e)} className="mt-4" color="primary" type="button">
+                  <Button onClick={(e)=>crearUsuario(e)} className="mt-4" color="primary" type="button" disabled={enabled}>
                     {loading ? <div className='d-flex align-items-center justify-content-center'>
                     <Spinner color="dark" style={{ width: '3rem', height: '3rem' }} />{' '}
                     </div> :'Create account'}

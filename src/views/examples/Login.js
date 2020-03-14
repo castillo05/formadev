@@ -69,13 +69,15 @@ const Login =(props)=> {
       }
       if(login.email==='test@test.com' && login.password==='test'){
         setLoading(true)
-        for (let i = 0; i <= 100; i++) {
+        
           
           setTimeout(()=>{
+            for (let i = 1; i <= 100; i++) {
             setProgress(i)
-          },200)
+            }
+          },500)
           
-        }
+       
         setTimeout(()=>{
           setLoading(false)
           setProgress(0)
@@ -128,6 +130,13 @@ const Login =(props)=> {
             <CardBody className="px-lg-5 py-lg-5">
               <div className="text-center text-muted mb-4">
                 <small>Or sign in with credentials</small>
+                
+              </div>
+              <div className=" text-muted mb-1">
+                <span className="text-primary">Correo: test@test.com</span>
+              </div>
+              <div className=" text-muted mb-1">
+                <span className="text-primary">Contraseña: test</span>
               </div>
               <Form role="form">
                 <FormGroup className="mb-3">
@@ -186,7 +195,7 @@ const Login =(props)=> {
                     
                     Sing In
                   </Button>
-                  {loading ? <Progress striped color="success" value={progress} /> : null}
+                  {loading ? <Progress striped color="success" value={progress} >{progress} %</Progress> : null}
                 </div>
               </Form>
             </CardBody>

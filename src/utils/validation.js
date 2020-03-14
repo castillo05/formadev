@@ -23,7 +23,7 @@ export default {
     schema:{
         username:Joi.string().required().label('username').error((e)=> handleError(e)),
         email:Joi.string().required().label('Email').error((e)=> handleError(e)),
-        password:Joi.string().required().label('password').error((e)=> handleError(e)),
+        password:Joi.string().required().regex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/).label('password').error((e)=> handleError(e)),
         passwordLogin:Joi.string().required().label('Contraseña').error((e)=> handleError(e))
     },
     createSchema: (args) => {
