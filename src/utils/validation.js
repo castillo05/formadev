@@ -1,4 +1,4 @@
-import Joi from 'joi-browser';
+import Joi from '@hapi/joi';
 
 const handleError=(error)=>{
     return error.map((error)=>{
@@ -24,39 +24,9 @@ export default {
     schema:{
         username:Joi.string().required().label('username').error((e)=> handleError(e)),
         email:Joi.string().required().label('Email').error((e)=> handleError(e)),
-        password:Joi.string().required().regex(/^(?=.*?[a-z]).{,6}$/,'debil').regex(/^(?=.*?[A-Z]).{,8}$/,'media').regex(/^(?=.*?[#?!@$%^&*-]).{,10}$/,'fuerte').options({
-          language: {
-            string: {
-              regex: {
-                
-                debil: 'debil',
-                media: 'media',
-                fuerte: 'fuerte'
-              }
-            }
-          }
-        }).label('password').error((e)=> {
+        password:Joi.string().required().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')).options({
          
-          e.forEach(err => {
-            console.log(err);
-            switch (err.context.name) {
-              case 'debil':
-                err.message='Debil' 
-                break;
-              case 'media':
-                err.message='Media' 
-                break;
-              case 'fuerte':
-                 err.message='Fuerte'
-                 break; 
-              default:
-                err.message='Bien hecho'
-                break;
-            }
-                           
-          });
-          return handleError(e)
-        }),
+        }).label('password').error(new Error()),
         passwordLogin:Joi.string().required().label('Contraseña').error((e)=> handleError(e))
     },
     createSchema: (args) => {

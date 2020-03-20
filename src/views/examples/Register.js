@@ -16,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React,{useState, isValidElement} from "react";
+import React,{useState,useEffect, Component} from "react";
 
 // reactstrap components
 import {
@@ -40,73 +40,174 @@ import {
 } from "reactstrap";
 
 // Joi validation
-import Joi from 'joi-browser';
-import utils from '../../utils'
-
-const { useInput, validation } = utils
-
-
-const Register=(props)=> {
-  const [loading, setLoading] = useState(false)
-  const [tooltipOpen, setTooltipOpen] = useState(false)
-  const [verPass, setVerPass] = useState(false)
-  const [alert, setAlert] = useState({ status: false, type: '', text: '' })
-  // Verify I agree 
-  const [check, setCheck]=useState(false);
-  const [enabled,setEnabled]=useState(true);
-  const toggle = () => setTooltipOpen(!tooltipOpen)
-  const schema = Joi.object().keys({
-    username:validation.schema.username,
-    email:validation.schema.email,
-    password:validation.schema.password
+import Joi from '@hapi/joi';
+const schema = Joi.object({
+  username: Joi.string().alphanum().min(3).max(30).required().messages({
+    'string.base':'Invalid Type',
+    'string.empty':'El campo Nombre de usuario no puede estar vacio',
+    'string.min':'El campo Nombre de Usuario debe tener minimo {#limit} caracteres de longitud',
+    'string.max':'El campo Nombre de Usuario debe tener maximo {#limit} caracteres de longitud',
+    'any.required':'Este campo es obligatorio'
+  }).default(null),
+  email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } } ).messages({
+    'string.base':'Invalid Type',
+    'string.empty':'El campo Correo de usuario no puede estar vacio',
+    'any.required':'Este campo es obligatorio'
+  }).default(null),
+  password: Joi.string().required().min(6)
+  .regex(/(?:.*?[a-z])/,'debil').regex(/(?=.*?[A-Z])/,'media').regex(/(?=.*?[.#?!@$%^&*-])/,'fuerte')
+  .messages({
+    'string.base':'Invalid Type',
+    'string.empty':'El campo Contraseña de usuario no puede estar vacio',
+    'string.min':'El campo Contraseña de Usuario debe tener minimo {#limit} caracteres de longitud',
+    'string.pattern.debil':'Debil',
+    'any.required':'Este campo es obligatorio'
   })
-  
-  const [input, setInput, submit] = useInput(schema)
+})
 
-  const crearUsuario=async(e)=>{
-    e.preventDefault()
-    try {
-      if(submit()){
-        const newUser = {
-          username: input.username,
-          email: input.email,
-          password: input.password
-        }
-        setLoading(true)
-        setTimeout(()=>{
-          console.log(newUser);
-          setLoading(false)
-          setAlert({
-            status:true,
-            type:'primary',
-            text:'Bienvenido a formDev Inicia sesión para disfrutar de una nueva experiencia de aprendizaje'
-          })
-        },2000)
-        
+class Register extends Component {
+
+  constructor(props) {
+    super()
+    this.state={
+      form:{
+        username:'',
+        email:'',
+        password:''
+      },
+      loading:false,
+      enabled:false,
+      alert:{
+        status:false,
+        type:'',
+        text:''
+      },
+      check:false,
+      messageError:[],
+      labels:{
+        username:'',
+        email:'',
+        password:''
       }
-    } catch (error) {
-      console.log(error)
     }
   }
-// I agree Policy 
-  const igreePolicy=(e)=>{
-  
-    setCheck(e.target.checked)
-    if(!e.target.checked){
-      setEnabled(true)
-      setAlert({
+
+  componentDidMount(){
+    
+  }
+
+  // Validacion de campos
+  setValidate=async(e)=>{
+   
+    console.log(this.state.form);
+    const valid=await schema.validate(this.state.form)
+    console.log(valid);
+    if(valid.error){
+      this.setState({
+        messageError:valid.error
+      })
+       this.setState({
+      alert:{
+        type:'warning',
         status:true,
-        type:'danger',
-        text:'Es necesario que acepte nuestras politicas de privacidad'
+        text:this.state.messageError.message
+      }
+    })
+
+    if(this.state.messageError.details[0].context.label==='username'){
+      this.setState({
+        labels:{
+          username:this.state.messageError.details[0].message,
+          email:'',
+          password:''
+        }
+      })
+      console.log(this.state.labels.username);
+    }else if(this.state.messageError.details[0].context.label==='email' ){
+      this.setState({
+        labels:{
+          username:'',
+          email:this.state.messageError.details[0].message,
+          password:''
+        }
+      })
+    }else if(this.state.messageError.details[0].context.label==='password' ){
+      this.setState({
+        labels:{
+          username:'',
+          email:'',
+          password:this.state.messageError.details[0].message
+        }
       })
     }else{
-      setEnabled(false)
-      setAlert({
-        status:false
+      return
+    }
+    
+    }else{
+     
+       this.setState({
+      alert:{
+        
+        status:false,
+        
+      }
+    })
+    console.log(valid);
+    }
+  }
+  
+
+  handleChange=(e)=>{
+    this.setState({
+      form:{
+        ...this.state.form,
+        [e.target.name]:e.target.value
+      }
+    })
+  
+}
+  handleKeyDown=e=>{
+   
+    this.setValidate(e)
+  }
+
+  crearUsuario=async e=>{
+    this.setValidate(e)   
+  }
+  // I agree Policy 
+  igreePolicy=e=>{
+  console.log('hola');
+    this.setState({
+      check:e.target.checked
+    })
+    if(!e.target.checked){
+      this.setState({
+        enabled:true
+      })
+      this.setState({
+        alert:{
+          type:'warning',
+          status:true,
+          text:'Debe aceptar nuestras politicas de privacidad'
+        }
+      })
+     
+    }else{
+      this.setState({
+        enabled:false
+      })
+      this.setState({
+        alert:{
+          
+          status:false
+        }
       })
     }
   }
  
+ 
+render(){
+
 
     return (
       <>
@@ -160,15 +261,14 @@ const Register=(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                     invalid={Boolean(input.errors.username)}
+                     invalid={true}
                      placeholder='Nombre del Usuario'
                      type='text'
                      name='username'
-                     defaultValue={input.username}
-                     onChange={setInput}
-                     onKeyDown={submit}
+                     onChange={this.handleChange}
+                     onKeyUp={this.handleKeyDown}
                      />
-                     <FormFeedback>{input.errors.username}</FormFeedback>
+                     <FormFeedback>{this.state.labels.username}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -178,16 +278,15 @@ const Register=(props)=> {
                         <i className="ni ni-email-83" />
                       </InputGroupText>
                     </InputGroupAddon>
-                    <Input 
-                     invalid={Boolean(input.errors.email)}
+                    <Input
+                    invalid={true}
                      placeholder='example@example.com'
                      type='text'
                      name='email'
-                     defaultValue={input.email}
-                     onChange={setInput}
-                     onKeyDown={submit}
+                     onChange={this.handleChange}
+                     onKeyUp={this.handleKeyDown}
                     />
-                    <FormFeedback>{input.errors.email}</FormFeedback>
+                    <FormFeedback>{this.state.labels.email}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -198,29 +297,28 @@ const Register=(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input 
-                      invalid={Boolean(input.errors.password)}
+                      invalid={true}
                       placeholder='Password'
-                      type={(verPass) ? 'text' : 'password'}
+                      type="password"
                       name='password'
-                      defaultValue={input.password}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      onChange={this.handleChange}
+                      onKeyUp={this.handleKeyDown}
                     />
                      <InputGroupText>
-                    <i onClick={() => { setVerPass(!verPass) }} id='verPass' className={(verPass) ? 'fas fa-eye-slash' : 'fas fa-eye'} />
+                    {/* <i onClick={() => { setVerPass(!verPass) }} id='verPass' className={(verPass) ? 'fas fa-eye-slash' : 'fas fa-eye'} /> */}
                   </InputGroupText>
                   <InputGroupText>
                     <i id='DisabledAutoHideExample' className='ni ni-air-baloon' />
                   </InputGroupText>
-                  <Tooltip placement='top' isOpen={tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={toggle}>
+                  {/* <Tooltip placement='top' isOpen={tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={toggle}>
                      !Este campo requiere 8 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial!
-                  </Tooltip>
-                    <FormFeedback>{input.errors.password}</FormFeedback>
+                  </Tooltip> */}
+                    <FormFeedback>{this.state.labels.password}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
-                {(alert.status) &&
-                <Alert color={alert.type}>
-                  {alert.text}
+                {(this.state.alert.status) &&
+                <Alert color={this.state.alert.type}>
+                  {this.state.alert.text}
                 </Alert>}
                 <div className="text-muted font-italic">
                   <small>
@@ -238,8 +336,8 @@ const Register=(props)=> {
                         id="customCheckRegister"
                         type="checkbox"
                         name="policy"
-                        onChange={(e)=>igreePolicy(e)}
-                        checked={check}
+                        onChange={this.igreePolicy}
+                        checked={this.state.check}
                       />
                       <label
                         className="custom-control-label"
@@ -256,8 +354,8 @@ const Register=(props)=> {
                   </Col>
                 </Row>
                 <div className="text-center">
-                  <Button onClick={(e)=>crearUsuario(e)} className="mt-4" color="primary" type="button" disabled={enabled}>
-                    {loading ? <div className='d-flex align-items-center justify-content-center'>
+                  <Button onClick={this.crearUsuario} className="mt-4" color="primary" type="button" disabled={this.state.enabled}>
+                    {this.state.loading ? <div className='d-flex align-items-center justify-content-center'>
                     <Spinner color="dark" style={{ width: '3rem', height: '3rem' }} />{' '}
                     </div> :'Create account'}
                     
@@ -269,6 +367,7 @@ const Register=(props)=> {
         </Col>
       </>
     );
+                }
   }
 
 
