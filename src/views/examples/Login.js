@@ -99,12 +99,18 @@ const Login =(props)=> {
             text:'Parece que escribiste mal tu correo. Verificalo!',
             type:'email'
           })
+          setShowToolip2({
+            status:false
+          })
           
         }else if(form.password!=='test'){
           setShowToolip2({
             status:true,
             text:'Parece que escribiste mal tu contraseña. Verificala!',
             type:'password'
+          })
+          setShowToolip({
+            status:false
           })
         }
         
@@ -183,7 +189,7 @@ const Login =(props)=> {
                       <InputGroupText>
                         <i id='email' className="ni ni-email-83" />
                       </InputGroupText>
-                      <Tooltip placement='top' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
+                      <Tooltip placement='left' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
                         {showTooltip.text}
                       </Tooltip>
                     </InputGroupAddon>
@@ -206,7 +212,7 @@ const Login =(props)=> {
                       <InputGroupText>
                         <i id="password" className="ni ni-lock-circle-open" />
                       </InputGroupText>
-                      <Tooltip placement='top' isOpen={showTooltip2.status} autohide={true} target='password' toggle={toggle2}>
+                      <Tooltip placement='left' isOpen={showTooltip2.status} autohide={true} target='password' toggle={toggle2}>
                         {showTooltip2.text}
                       </Tooltip>
                     </InputGroupAddon>
