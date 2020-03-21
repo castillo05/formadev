@@ -36,33 +36,24 @@ import {
   FormFeedback, 
   FormText,
   Tooltip,
-  Alert
+  Alert,
+  Badge
 } from "reactstrap";
 
 // Joi validation
-import Joi from '@hapi/joi';
-const schema = Joi.object({
-  username: Joi.string().alphanum().min(3).max(30).required().messages({
-    'string.base':'Invalid Type',
-    'string.empty':'El campo Nombre de usuario no puede estar vacio',
-    'string.min':'El campo Nombre de Usuario debe tener minimo {#limit} caracteres de longitud',
-    'string.max':'El campo Nombre de Usuario debe tener maximo {#limit} caracteres de longitud',
-    'any.required':'Este campo es obligatorio'
-  }).default(null),
-  email: Joi.string().required().email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } } ).messages({
-    'string.base':'Invalid Type',
-    'string.empty':'El campo Correo de usuario no puede estar vacio',
-    'any.required':'Este campo es obligatorio'
-  }).default(null),
-  password: Joi.string().required().min(6)
-  .regex(/(?:.*?[a-z])/,'debil').regex(/(?=.*?[A-Z])/,'media').regex(/(?=.*?[.#?!@$%^&*-])/,'fuerte')
-  .messages({
-    'string.base':'Invalid Type',
-    'string.empty':'El campo Contraseña de usuario no puede estar vacio',
-    'string.min':'El campo Contraseña de Usuario debe tener minimo {#limit} caracteres de longitud',
-    'string.pattern.debil':'Debil',
-    'any.required':'Este campo es obligatorio'
-  })
+// import Joi from '@hapi/joi';
+import * as yup from 'yup';
+// import { options } from "joi-browser";
+
+var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#.*+/\$%\^&\*])(?=.{8,})");
+var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
+
+const schema = yup.object().shape({
+  password: yup.string()
+  .required('La contraseña es requerida')
+  .min(6,'La contraseña debe tener ${min} caracteres'),
+  email: yup.string().required('El correo es obligatorio').email(),
+  username: yup.string().required('El nombre de usuario es obligatorio')  
 })
 
 class Register extends Component {
@@ -88,74 +79,76 @@ class Register extends Component {
         username:'',
         email:'',
         password:''
-      }
+      },
+      feedback:false,
+      levelPassword:{
+        color:'',
+        status:false,
+        text:''
+      },
+      tooltipOpen:false,
+      verPass:false
     }
   }
 
+  toggle = (e) => !this.state.tooltipOpen ? this.setState({tooltipOpen:true}) : this.setState({tooltipOpen:false})
   componentDidMount(){
     
   }
 
-  // Validacion de campos
-  setValidate=async(e)=>{
-   
-    console.log(this.state.form);
-    const valid=await schema.validate(this.state.form)
-    console.log(valid);
-    if(valid.error){
+  levelPass=(e)=>{
+    if(strongRegex.test(this.state.form.password)){
+      
       this.setState({
-        messageError:valid.error
-      })
-       this.setState({
-      alert:{
-        type:'warning',
-        status:true,
-        text:this.state.messageError.message
-      }
-    })
-
-    if(this.state.messageError.details[0].context.label==='username'){
-      this.setState({
-        labels:{
-          username:this.state.messageError.details[0].message,
-          email:'',
-          password:''
+        levelPassword:{
+          state:true,
+          color:'text-success',
+          text:'Fuerte'
         }
       })
-      console.log(this.state.labels.username);
-    }else if(this.state.messageError.details[0].context.label==='email' ){
-      this.setState({
-        labels:{
-          username:'',
-          email:this.state.messageError.details[0].message,
-          password:''
-        }
-      })
-    }else if(this.state.messageError.details[0].context.label==='password' ){
-      this.setState({
-        labels:{
-          username:'',
-          email:'',
-          password:this.state.messageError.details[0].message
-        }
-      })
-    }else{
-      return
-    }
-    
-    }else{
      
-       this.setState({
-      alert:{
-        
-        status:false,
-        
-      }
-    })
-    console.log(valid);
+    }else if(mediumRegex.test(this.state.form.password)){
+      this.setState({
+        levelPassword:{
+          state:true,
+          color:'text-warning',
+          text:'Media'
+        }
+      })
+     
+    }else{
+      
+      this.setState({
+        levelPassword:{
+          state:true,
+          color:'text-danger',
+          text:'Debil'
+        }
+      })
+      
     }
   }
-  
+
+  // Validacion de campos
+  setValidate=async(e)=>{
+    await schema.validate(this.state.form).then(res=>{
+      console.log(res);
+      
+      this.setState({
+        alert:{
+          status:false
+        },
+        feedback:false
+      })
+    }).catch((err)=>{
+        console.log(err);
+        this.setState({
+          feedback:true,
+          messageError:err,
+        })
+      })
+  }
+
 
   handleChange=(e)=>{
     this.setState({
@@ -169,6 +162,7 @@ class Register extends Component {
   handleKeyDown=e=>{
    
     this.setValidate(e)
+    this.levelPass()
   }
 
   crearUsuario=async e=>{
@@ -176,7 +170,7 @@ class Register extends Component {
   }
   // I agree Policy 
   igreePolicy=e=>{
-  console.log('hola');
+ 
     this.setState({
       check:e.target.checked
     })
@@ -261,14 +255,14 @@ render(){
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                     invalid={true}
+                     invalid={this.state.feedback}
                      placeholder='Nombre del Usuario'
                      type='text'
                      name='username'
                      onChange={this.handleChange}
                      onKeyUp={this.handleKeyDown}
                      />
-                     <FormFeedback>{this.state.labels.username}</FormFeedback>
+                     <FormFeedback>{this.state.messageError.path==='username'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -279,14 +273,15 @@ render(){
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                    invalid={true}
+                    invalid={this.state.feedback}
+                    disabled={this.state.messageError.path==='email' ? false:null}
                      placeholder='example@example.com'
                      type='text'
                      name='email'
                      onChange={this.handleChange}
                      onKeyUp={this.handleKeyDown}
                     />
-                    <FormFeedback>{this.state.labels.email}</FormFeedback>
+                    <FormFeedback>{this.state.messageError.path==='email'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -297,23 +292,24 @@ render(){
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input 
-                      invalid={true}
+                      invalid={this.state.feedback}
+                      disabled={this.state.messageError.path==='password' ? false:null}
                       placeholder='Password'
-                      type="password"
+                      type={this.state.verPass ? 'text' : 'password'}
                       name='password'
                       onChange={this.handleChange}
                       onKeyUp={this.handleKeyDown}
                     />
                      <InputGroupText>
-                    {/* <i onClick={() => { setVerPass(!verPass) }} id='verPass' className={(verPass) ? 'fas fa-eye-slash' : 'fas fa-eye'} /> */}
+                    <i onClick={() => { !this.state.verPass?this.setState({verPass:true}):this.setState({verPass:false})}} id='verPass' className={this.state.verPass ? 'fas fa-eye-slash' : 'fas fa-eye'} />
                   </InputGroupText>
                   <InputGroupText>
                     <i id='DisabledAutoHideExample' className='ni ni-air-baloon' />
                   </InputGroupText>
-                  {/* <Tooltip placement='top' isOpen={tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={toggle}>
-                     !Este campo requiere 8 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial!
-                  </Tooltip> */}
-                    <FormFeedback>{this.state.labels.password}</FormFeedback>
+                  <Tooltip placement='top' isOpen={this.state.tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={this.toggle}>
+                     !Este campo requiere entre 8 y 10 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial para mayor seguridad!
+                  </Tooltip>
+                    <FormFeedback>{this.state.messageError.path==='password'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 {(this.state.alert.status) &&
@@ -322,8 +318,10 @@ render(){
                 </Alert>}
                 <div className="text-muted font-italic">
                   <small>
-                    password strength:{" "}
-                    <span className="text-success font-weight-700">strong</span>
+                    Seguridad de la contraseña:{" "}
+                   
+                      <span className={this.state.levelPassword.color}>{this.state.levelPassword.text}</span>
+                   
                   </small>
                 </div>
                
