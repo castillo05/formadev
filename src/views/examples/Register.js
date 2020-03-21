@@ -16,7 +16,8 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React,{useState,useEffect, Component} from "react";
+import React,{ Component} from "react";
+import {Link, Redirect} from 'react-router-dom';
 
 // reactstrap components
 import {
@@ -33,11 +34,9 @@ import {
   Row,
   Col,
   Spinner,
-  FormFeedback, 
-  FormText,
+  FormFeedback,
   Tooltip,
-  Alert,
-  Badge
+  Alert
 } from "reactstrap";
 
 // Joi validation
@@ -51,7 +50,7 @@ var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9])
 const schema = yup.object().shape({
   password: yup.string()
   .required('La contraseña es requerida')
-  .min(6,'La contraseña debe tener ${min} caracteres'),
+  .min(6,'La contraseña debe tener 6 caracteres'),
   email: yup.string().required('El correo es obligatorio').email(),
   username: yup.string().required('El nombre de usuario es obligatorio')  
 })
@@ -67,7 +66,7 @@ class Register extends Component {
         password:''
       },
       loading:false,
-      enabled:false,
+      enabled:true,
       alert:{
         status:false,
         type:'',
@@ -87,15 +86,15 @@ class Register extends Component {
         text:''
       },
       tooltipOpen:false,
-      verPass:false
+      verPass:false,
+      register:{
+        status:false
+      }
     }
   }
 
   toggle = (e) => !this.state.tooltipOpen ? this.setState({tooltipOpen:true}) : this.setState({tooltipOpen:false})
-  componentDidMount(){
-    
-  }
-
+  
   levelPass=(e)=>{
     if(strongRegex.test(this.state.form.password)){
       
@@ -166,7 +165,20 @@ class Register extends Component {
   }
 
   crearUsuario=async e=>{
-    this.setValidate(e)   
+    this.setValidate(e)
+    this.setState({
+      loading:true
+    })   
+    
+    setTimeout(()=>{
+      console.log(this.state.form);
+      this.setState({
+        loading:false
+      })
+      this.setState({register:{
+        status:true
+      }})
+    },3000)
   }
   // I agree Policy 
   igreePolicy=e=>{
@@ -202,9 +214,10 @@ class Register extends Component {
  
 render(){
 
-
+   
     return (
       <>
+       {this.state.register.status ? <Redirect from="/auth/register" to="/auth/login"></Redirect>:null}
         <Col lg="6" md="8">
           <Card className="bg-secondary shadow border-0">
             <CardHeader className="bg-transparent pb-5">
