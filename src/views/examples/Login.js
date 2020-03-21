@@ -34,43 +34,43 @@ import {
   Col,
   FormFeedback,
   Spinner,
-  Progress
+  Progress,
+  Alert
 } from "reactstrap";
 
-// Utils
-import Utils from '../../utils';
 // Joi validation
-import Joi from 'joi-browser';
-
-const {useInput, validation} = Utils;
-
-
-
+import * as yup from 'yup';
 
 
 const Login =(props)=> {
   const [loading, setLoading] = useState(false)
   const [progress, setProgress]=useState(5)
+  const [form,setForm] = useState({email:'',password:''})
+  const [errorMessage,setError]=useState([])
+  const [feedback,setFeedBack]=useState(false)
+  const [alert,setAlert]=useState({status:false,text:'',type:''})
 
-  const schema = validation.createSchema({
-    email:validation.schema.email,
-    password:validation.schema.passwordLogin
+  const schema = yup.object().shape({
+    email: yup.string().required('El correo es obligatorio').email('El correo debe contener un correo valido'),
+    password: yup.string().required('La contraseña es requerida')
   })
-  
-  const [input,setInput,submit]=useInput(schema);
+
+  const handleChange=(e)=>{
+    setForm(
+      {
+       ...form,
+       [e.target.name]:e.target.value
+    }
+    )
+  }
 
   const loginUser=async(e)=>{
+    
     e.preventDefault()
-  
-    if(submit()){
-      const login={
-        email:input.email,
-        password:input.password
-      }
-      if(login.email==='test@test.com' && login.password==='test'){
+    schema.validate(form).then(res=>{
+      setFeedBack(false)
+      if(form.email==='test@test.com' && form.password==='test'){
         setLoading(true)
-        
-          
           setTimeout(()=>{
             for (let i = 1; i <= 100; i++) {
             setProgress(i)
@@ -82,10 +82,25 @@ const Login =(props)=> {
           setLoading(false)
           setProgress(0)
         },3000)
-         console.log(login);
+        setAlert({status:false})
+         
+      }else{
+        setAlert(
+          {
+            status:true,
+            text:'Error. email o contraseña incorrecta!',
+            type:'danger'
+          }
+        )
       }
      
-    }
+    }).catch((err)=>{
+     
+      setError(err)
+      setFeedBack(true)
+    })
+  
+   
   }
  
     return (
@@ -147,15 +162,15 @@ const Login =(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                      invalid={Boolean(input.errors.email)}
+                      invalid={feedback}
                       placeholder='example@example.com'
                       type='email'
                       name='email'
-                      defaultValue={input.email}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      // defaultValue={input.email}
+                      onChange={(e)=>handleChange(e)}
+                      // onKeyDown={submit}
                     />
-                    <FormFeedback>{input.errors.email}</FormFeedback>
+                    <FormFeedback>{errorMessage.path!=='password'? errorMessage.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -166,17 +181,21 @@ const Login =(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                      invalid={Boolean(input.errors.password)}
+                       invalid={feedback}
                       placeholder='******'
                       type='password'
                       name='password'
-                      defaultValue={input.password}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      // defaultValue={input.password}
+                      onChange={(e)=>handleChange(e)}
+                      // onKeyDown={submit}
                     />
-                    <FormFeedback>{input.errors.password}</FormFeedback>
+                    <FormFeedback>{errorMessage.path==='password'? errorMessage.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
+                {(alert.status) &&
+                <Alert color={alert.type}>
+                  {alert.text}
+                </Alert>}
                 <div className="custom-control custom-control-alternative custom-checkbox">
                   <input
                     className="custom-control-input"
