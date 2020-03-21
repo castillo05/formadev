@@ -35,7 +35,8 @@ import {
   FormFeedback,
   Spinner,
   Progress,
-  Alert
+  Alert,
+  Tooltip
 } from "reactstrap";
 
 // Joi validation
@@ -49,6 +50,12 @@ const Login =(props)=> {
   const [errorMessage,setError]=useState([])
   const [feedback,setFeedBack]=useState(false)
   const [alert,setAlert]=useState({status:false,text:'',type:''})
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [showTooltip,setShowToolip]= useState({status:false,text:'',type:''})
+  const [showTooltip2,setShowToolip2]= useState({status:false,text:'',type:''})
+
+  const toggle = () => setShowToolip(!showTooltip);
+  const toggle2 = () => setShowToolip2(!showTooltip2);
 
   const schema = yup.object().shape({
     email: yup.string().required('El correo es obligatorio').email('El correo debe contener un correo valido'),
@@ -83,8 +90,24 @@ const Login =(props)=> {
           setProgress(0)
         },3000)
         setAlert({status:false})
-         
+         setShowToolip({status:false})
+         setShowToolip2({status:false})
       }else{
+        if(form.email!=='test@test.com'){
+          setShowToolip({
+            status:true,
+            text:'Parece que escribiste mal tu correo. Verificalo!',
+            type:'email'
+          })
+          
+        }else if(form.password!=='test'){
+          setShowToolip2({
+            status:true,
+            text:'Parece que escribiste mal tu contraseña. Verificala!',
+            type:'password'
+          })
+        }
+        
         setAlert(
           {
             status:true,
@@ -158,8 +181,11 @@ const Login =(props)=> {
                   <InputGroup className="input-group-alternative">
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
-                        <i className="ni ni-email-83" />
+                        <i id='email' className="ni ni-email-83" />
                       </InputGroupText>
+                      <Tooltip placement='top' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
+                        {showTooltip.text}
+                      </Tooltip>
                     </InputGroupAddon>
                     <Input
                       invalid={feedback}
@@ -171,14 +197,18 @@ const Login =(props)=> {
                       // onKeyDown={submit}
                     />
                     <FormFeedback>{errorMessage.path!=='password'? errorMessage.message:''}</FormFeedback>
+                  
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
                   <InputGroup className="input-group-alternative">
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
-                        <i className="ni ni-lock-circle-open" />
+                        <i id="password" className="ni ni-lock-circle-open" />
                       </InputGroupText>
+                      <Tooltip placement='top' isOpen={showTooltip2.status} autohide={true} target='password' toggle={toggle2}>
+                        {showTooltip2.text}
+                      </Tooltip>
                     </InputGroupAddon>
                     <Input
                        invalid={feedback}
