@@ -1,3 +1,4 @@
+// @ts-nocheck
 /*!
 
 =========================================================
@@ -15,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React,{useState} from "react";
 
 // reactstrap components
 import {
@@ -30,11 +31,63 @@ import {
   InputGroupText,
   InputGroup,
   Row,
-  Col
+  Col,
+  FormFeedback,
+  Spinner,
+  Progress
 } from "reactstrap";
 
-class Login extends React.Component {
-  render() {
+// Utils
+import Utils from '../../utils';
+// Joi validation
+import Joi from 'joi-browser';
+
+const {useInput, validation} = Utils;
+
+
+
+
+
+const Login =(props)=> {
+  const [loading, setLoading] = useState(false)
+  const [progress, setProgress]=useState(5)
+
+  const schema = validation.createSchema({
+    email:validation.schema.email,
+    password:validation.schema.passwordLogin
+  })
+  
+  const [input,setInput,submit]=useInput(schema);
+
+  const loginUser=async(e)=>{
+    e.preventDefault()
+  
+    if(submit()){
+      const login={
+        email:input.email,
+        password:input.password
+      }
+      if(login.email==='test@test.com' && login.password==='test'){
+        setLoading(true)
+        
+          
+          setTimeout(()=>{
+            for (let i = 1; i <= 100; i++) {
+            setProgress(i)
+            }
+          },500)
+          
+       
+        setTimeout(()=>{
+          setLoading(false)
+          setProgress(0)
+        },3000)
+         console.log(login);
+      }
+     
+    }
+  }
+ 
     return (
       <>
         <Col lg="5" md="7">
@@ -77,6 +130,13 @@ class Login extends React.Component {
             <CardBody className="px-lg-5 py-lg-5">
               <div className="text-center text-muted mb-4">
                 <small>Or sign in with credentials</small>
+                
+              </div>
+              <div className=" text-muted mb-1">
+                <span className="text-primary">Correo: test@test.com</span>
+              </div>
+              <div className=" text-muted mb-1">
+                <span className="text-primary">Contraseña: test</span>
               </div>
               <Form role="form">
                 <FormGroup className="mb-3">
@@ -86,7 +146,16 @@ class Login extends React.Component {
                         <i className="ni ni-email-83" />
                       </InputGroupText>
                     </InputGroupAddon>
-                    <Input placeholder="Email" type="email" autoComplete="new-email"/>
+                    <Input
+                      invalid={Boolean(input.errors.email)}
+                      placeholder='example@example.com'
+                      type='email'
+                      name='email'
+                      defaultValue={input.email}
+                      onChange={setInput}
+                      onKeyDown={submit}
+                    />
+                    <FormFeedback>{input.errors.email}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -96,7 +165,16 @@ class Login extends React.Component {
                         <i className="ni ni-lock-circle-open" />
                       </InputGroupText>
                     </InputGroupAddon>
-                    <Input placeholder="Password" type="password" autoComplete="new-password"/>
+                    <Input
+                      invalid={Boolean(input.errors.password)}
+                      placeholder='******'
+                      type='password'
+                      name='password'
+                      defaultValue={input.password}
+                      onChange={setInput}
+                      onKeyDown={submit}
+                    />
+                    <FormFeedback>{input.errors.password}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <div className="custom-control custom-control-alternative custom-checkbox">
@@ -113,9 +191,11 @@ class Login extends React.Component {
                   </label>
                 </div>
                 <div className="text-center">
-                  <Button className="my-4" color="primary" type="button">
-                    Sign in
+                  <Button onClick={(e)=>loginUser(e)} className="my-4" color="primary" disabled={loading} type="button">
+                    
+                    Sing In
                   </Button>
+                  {loading ? <Progress striped color="success" value={progress} >{progress} %</Progress> : null}
                 </div>
               </Form>
             </CardBody>
@@ -144,6 +224,6 @@ class Login extends React.Component {
       </>
     );
   }
-}
+
 
 export default Login;

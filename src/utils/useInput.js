@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { useState } from 'react'
-import Joi from 'joi-browser'
+import Joi from '@hapi/joi'
 
 export default (schema, submit) => {
   const [state, setState] = useState({ errors: {} })

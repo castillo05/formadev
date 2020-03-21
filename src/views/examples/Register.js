@@ -16,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React,{useState, isValidElement} from "react";
+import React,{useState,useEffect, Component} from "react";
 
 // reactstrap components
 import {
@@ -36,85 +36,172 @@ import {
   FormFeedback, 
   FormText,
   Tooltip,
-  Alert
+  Alert,
+  Badge
 } from "reactstrap";
 
 // Joi validation
-import Joi from 'joi-browser';
-import utils from '../../utils'
+// import Joi from '@hapi/joi';
+import * as yup from 'yup';
+// import { options } from "joi-browser";
 
-const { useInput, validation } = utils
+var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#.*+/\$%\^&\*])(?=.{8,})");
+var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
 
+const schema = yup.object().shape({
+  password: yup.string()
+  .required('La contraseña es requerida')
+  .min(6,'La contraseña debe tener ${min} caracteres'),
+  email: yup.string().required('El correo es obligatorio').email(),
+  username: yup.string().required('El nombre de usuario es obligatorio')  
+})
 
-const Register=(props)=> {
-  const [loading, setLoading] = useState(false)
-  const [tooltipOpen, setTooltipOpen] = useState(false)
-  const [verPass, setVerPass] = useState(false)
-  const [alert, setAlert] = useState({ status: false, type: '', text: '' })
-  const toggle = () => setTooltipOpen(!tooltipOpen)
-  const schema = Joi.object().keys({
-    username:validation.schema.username,
-    email:validation.schema.email,
-    password:validation.schema.password
-  })
-  
-  const [input, setInput, submit] = useInput(schema)
+class Register extends Component {
 
-  const crearUsuario=async(e)=>{
-    e.preventDefault()
-    try {
-      if(submit()){
-        const newUser = {
-          username: input.username,
-          email: input.email,
-          password: input.password
+  constructor(props) {
+    super()
+    this.state={
+      form:{
+        username:'',
+        email:'',
+        password:''
+      },
+      loading:false,
+      enabled:false,
+      alert:{
+        status:false,
+        type:'',
+        text:''
+      },
+      check:false,
+      messageError:[],
+      labels:{
+        username:'',
+        email:'',
+        password:''
+      },
+      feedback:false,
+      levelPassword:{
+        color:'',
+        status:false,
+        text:''
+      },
+      tooltipOpen:false,
+      verPass:false
+    }
+  }
+
+  toggle = (e) => !this.state.tooltipOpen ? this.setState({tooltipOpen:true}) : this.setState({tooltipOpen:false})
+  componentDidMount(){
+    
+  }
+
+  levelPass=(e)=>{
+    if(strongRegex.test(this.state.form.password)){
+      
+      this.setState({
+        levelPassword:{
+          state:true,
+          color:'text-success',
+          text:'Fuerte'
         }
-        setLoading(true)
-        setTimeout(()=>{
-          console.log(newUser);
-          setLoading(false)
-          setAlert({
-            status:true,
-            type:'primary',
-            text:'Bienvenido a formDev Inicia sesión para disfrutar de una nueva experiencia de aprendizaje'
-          })
-        },2000)
-        
+      })
+     
+    }else if(mediumRegex.test(this.state.form.password)){
+      this.setState({
+        levelPassword:{
+          state:true,
+          color:'text-warning',
+          text:'Media'
+        }
+      })
+     
+    }else{
+      
+      this.setState({
+        levelPassword:{
+          state:true,
+          color:'text-danger',
+          text:'Debil'
+        }
+      })
+      
+    }
+  }
+
+  // Validacion de campos
+  setValidate=async(e)=>{
+    await schema.validate(this.state.form).then(res=>{
+      console.log(res);
+      
+      this.setState({
+        alert:{
+          status:false
+        },
+        feedback:false
+      })
+    }).catch((err)=>{
+        console.log(err);
+        this.setState({
+          feedback:true,
+          messageError:err,
+        })
+      })
+  }
+
+
+  handleChange=(e)=>{
+    this.setState({
+      form:{
+        ...this.state.form,
+        [e.target.name]:e.target.value
       }
-    } catch (error) {
-      console.log(error)
+    })
+  
+}
+  handleKeyDown=e=>{
+   
+    this.setValidate(e)
+    this.levelPass()
+  }
+
+  crearUsuario=async e=>{
+    this.setValidate(e)   
+  }
+  // I agree Policy 
+  igreePolicy=e=>{
+ 
+    this.setState({
+      check:e.target.checked
+    })
+    if(!e.target.checked){
+      this.setState({
+        enabled:true
+      })
+      this.setState({
+        alert:{
+          type:'warning',
+          status:true,
+          text:'Debe aceptar nuestras politicas de privacidad'
+        }
+      })
+     
+    }else{
+      this.setState({
+        enabled:false
+      })
+      this.setState({
+        alert:{
+          
+          status:false
+        }
+      })
     }
   }
  
-//   // Obteniendo datos del formulario actualiza el state
-//  const handleChangeEvent=e=>{
-//     // this.setState({
-//     //   form:{
-//     //     ...this.state.form,
-//     //     [e.target.name]:e.target.value
-//     //   }
-//     // })
-//   }
+ 
+render(){
 
-//   // Envio de datos
-//   const handleSubmit=e=>{
-//     // e.preventDefault();
-//     // this.setState({
-//     //   loading:true
-//     // })
-
-//     // const newUser = {
-//     //   firstName: input.UserName,
-//     //   lastName: input.UserlastName,
-//     //   email: input.Email,
-//     //   password: input.password
-//     // }
-
-//     // setTimeout(()=>{
-//     //   this.setState({loading:false});
-//     // },5000);
-//     // console.log(this.state.form);
-  // }
 
     return (
       <>
@@ -168,15 +255,14 @@ const Register=(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input
-                     invalid={Boolean(input.errors.username)}
+                     invalid={this.state.feedback}
                      placeholder='Nombre del Usuario'
                      type='text'
                      name='username'
-                     defaultValue={input.username}
-                     onChange={setInput}
-                     onKeyDown={submit}
+                     onChange={this.handleChange}
+                     onKeyUp={this.handleKeyDown}
                      />
-                     <FormFeedback>{input.errors.username}</FormFeedback>
+                     <FormFeedback>{this.state.messageError.path==='username'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -186,16 +272,16 @@ const Register=(props)=> {
                         <i className="ni ni-email-83" />
                       </InputGroupText>
                     </InputGroupAddon>
-                    <Input 
-                     invalid={Boolean(input.errors.email)}
+                    <Input
+                    invalid={this.state.feedback}
+                    disabled={this.state.messageError.path==='email' ? false:null}
                      placeholder='example@example.com'
                      type='text'
                      name='email'
-                     defaultValue={input.email}
-                     onChange={setInput}
-                     onKeyDown={submit}
+                     onChange={this.handleChange}
+                     onKeyUp={this.handleKeyDown}
                     />
-                    <FormFeedback>{input.errors.email}</FormFeedback>
+                    <FormFeedback>{this.state.messageError.path==='email'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -206,34 +292,36 @@ const Register=(props)=> {
                       </InputGroupText>
                     </InputGroupAddon>
                     <Input 
-                      invalid={Boolean(input.errors.password)}
+                      invalid={this.state.feedback}
+                      disabled={this.state.messageError.path==='password' ? false:null}
                       placeholder='Password'
-                      type={(verPass) ? 'text' : 'password'}
+                      type={this.state.verPass ? 'text' : 'password'}
                       name='password'
-                      defaultValue={input.password}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      onChange={this.handleChange}
+                      onKeyUp={this.handleKeyDown}
                     />
                      <InputGroupText>
-                    <i onClick={() => { setVerPass(!verPass) }} id='verPass' className={(verPass) ? 'fas fa-eye-slash' : 'fas fa-eye'} />
+                    <i onClick={() => { !this.state.verPass?this.setState({verPass:true}):this.setState({verPass:false})}} id='verPass' className={this.state.verPass ? 'fas fa-eye-slash' : 'fas fa-eye'} />
                   </InputGroupText>
                   <InputGroupText>
                     <i id='DisabledAutoHideExample' className='ni ni-air-baloon' />
                   </InputGroupText>
-                  <Tooltip placement='top' isOpen={tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={toggle}>
-                     !Este campo requiere 8 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial!
+                  <Tooltip placement='top' isOpen={this.state.tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={this.toggle}>
+                     !Este campo requiere entre 8 y 10 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial para mayor seguridad!
                   </Tooltip>
-                    <FormFeedback>{input.errors.password}</FormFeedback>
+                    <FormFeedback>{this.state.messageError.path==='password'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
-                {(alert.status) &&
-                <Alert color={alert.type}>
-                  {alert.text}
+                {(this.state.alert.status) &&
+                <Alert color={this.state.alert.type}>
+                  {this.state.alert.text}
                 </Alert>}
                 <div className="text-muted font-italic">
                   <small>
-                    password strength:{" "}
-                    <span className="text-success font-weight-700">strong</span>
+                    Seguridad de la contraseña:{" "}
+                   
+                      <span className={this.state.levelPassword.color}>{this.state.levelPassword.text}</span>
+                   
                   </small>
                 </div>
                
@@ -245,6 +333,9 @@ const Register=(props)=> {
                         className="custom-control-input"
                         id="customCheckRegister"
                         type="checkbox"
+                        name="policy"
+                        onChange={this.igreePolicy}
+                        checked={this.state.check}
                       />
                       <label
                         className="custom-control-label"
@@ -261,8 +352,8 @@ const Register=(props)=> {
                   </Col>
                 </Row>
                 <div className="text-center">
-                  <Button onClick={(e)=>crearUsuario(e)} className="mt-4" color="primary" type="button">
-                    {loading ? <div className='d-flex align-items-center justify-content-center'>
+                  <Button onClick={this.crearUsuario} className="mt-4" color="primary" type="button" disabled={this.state.enabled}>
+                    {this.state.loading ? <div className='d-flex align-items-center justify-content-center'>
                     <Spinner color="dark" style={{ width: '3rem', height: '3rem' }} />{' '}
                     </div> :'Create account'}
                     
@@ -274,6 +365,7 @@ const Register=(props)=> {
         </Col>
       </>
     );
+                }
   }
 
 
