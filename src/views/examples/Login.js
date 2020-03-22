@@ -16,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 
 // reactstrap components
 import {
@@ -38,7 +38,7 @@ import {
   Alert,
   Tooltip
 } from "reactstrap";
-
+import {Link, Redirect} from 'react-router-dom';
 // Joi validation
 import * as yup from 'yup';
 
@@ -53,6 +53,7 @@ const Login =(props)=> {
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [showTooltip,setShowToolip]= useState({status:false,text:'',type:''})
   const [showTooltip2,setShowToolip2]= useState({status:false,text:'',type:''})
+  const [isLogin,setisLogin]=useState(false)
 
   const toggle = () => setShowToolip(!showTooltip);
   const toggle2 = () => setShowToolip2(!showTooltip2);
@@ -78,14 +79,15 @@ const Login =(props)=> {
       setFeedBack(false)
       if(form.email==='test@test.com' && form.password==='test'){
         setLoading(true)
-          setTimeout(()=>{
+        setTimeout(()=>{
             for (let i = 1; i <= 100; i++) {
             setProgress(i)
             }
-          },500)
+            setisLogin(true)
+          },1000)
           
        
-        setTimeout(()=>{
+         setTimeout(()=>{
           setLoading(false)
           setProgress(0)
         },3000)
@@ -128,12 +130,17 @@ const Login =(props)=> {
       setError(err)
       setFeedBack(true)
     })
-  
    
   }
+
+  useEffect(() => {
+      // clearTimeout(timer1);
+      // clearTimeout(timer2)
+  }, []);
  
     return (
       <>
+      {isLogin ? <Redirect from="/auth/login" to="/admin"></Redirect>:null}
         <Col lg="5" md="7">
           <Card className="bg-secondary shadow border-0">
             <CardHeader className="bg-transparent pb-5">
@@ -189,7 +196,7 @@ const Login =(props)=> {
                       <InputGroupText>
                         <i id='email' className="ni ni-email-83" />
                       </InputGroupText>
-                      <Tooltip placement='left' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
+                      <Tooltip className="bg-danger" placement='left' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
                         {showTooltip.text}
                       </Tooltip>
                     </InputGroupAddon>
@@ -247,10 +254,10 @@ const Login =(props)=> {
                 </div>
                 <div className="text-center">
                   <Button onClick={(e)=>loginUser(e)} className="my-4" color="primary" disabled={loading} type="button">
+                  {loading ? <Spinner style={{ width: '3rem', height: '3rem' }} color="danger" type="grow"></Spinner> : 'Sing In'}
                     
-                    Sing In
                   </Button>
-                  {loading ? <Progress striped color="success" value={progress} >{progress} %</Progress> : null}
+                 
                 </div>
               </Form>
             </CardBody>
