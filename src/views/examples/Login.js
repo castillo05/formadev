@@ -38,22 +38,20 @@ import {
   Alert,
   Tooltip
 } from "reactstrap";
-import {Link, Redirect} from 'react-router-dom';
+import {Link, Redirect,useHistory } from 'react-router-dom';
 // Joi validation
 import * as yup from 'yup';
 
 
 const Login =(props)=> {
+  
   const [loading, setLoading] = useState(false)
-  const [progress, setProgress]=useState(5)
   const [form,setForm] = useState({email:'',password:''})
   const [errorMessage,setError]=useState([])
   const [feedback,setFeedBack]=useState(false)
   const [alert,setAlert]=useState({status:false,text:'',type:''})
-  const [tooltipOpen, setTooltipOpen] = useState(false);
   const [showTooltip,setShowToolip]= useState({status:false,text:'',type:''})
   const [showTooltip2,setShowToolip2]= useState({status:false,text:'',type:''})
-  const [isLogin,setisLogin]=useState(false)
 
   const toggle = () => setShowToolip(!showTooltip);
   const toggle2 = () => setShowToolip2(!showTooltip2);
@@ -71,29 +69,21 @@ const Login =(props)=> {
     }
     )
   }
-
+  
   const loginUser=async(e)=>{
     
     e.preventDefault()
+   
     schema.validate(form).then(res=>{
       setFeedBack(false)
       if(form.email==='test@test.com' && form.password==='test'){
-        setLoading(true)
-        setTimeout(()=>{
-            for (let i = 1; i <= 100; i++) {
-            setProgress(i)
-            }
-            setisLogin(true)
-          },1000)
+        setLoading(true)           
           
-       
-         setTimeout(()=>{
-          setLoading(false)
-          setProgress(0)
-        },3000)
+        setLoading(false)
         setAlert({status:false})
-         setShowToolip({status:false})
-         setShowToolip2({status:false})
+        setShowToolip({status:false})
+        setShowToolip2({status:false})
+        props.history.push('/admin')
       }else{
         if(form.email!=='test@test.com'){
           setShowToolip({
@@ -134,13 +124,15 @@ const Login =(props)=> {
   }
 
   useEffect(() => {
-      // clearTimeout(timer1);
-      // clearTimeout(timer2)
+      
+      return ()=>{
+        
+      }
   }, []);
  
     return (
       <>
-      {isLogin ? <Redirect from="/auth/login" to="/admin"></Redirect>:null}
+      {/* {isLogin ? <Redirect from="/auth/login" to="/admin"></Redirect>:null} */}
         <Col lg="5" md="7">
           <Card className="bg-secondary shadow border-0">
             <CardHeader className="bg-transparent pb-5">
