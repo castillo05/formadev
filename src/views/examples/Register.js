@@ -185,6 +185,7 @@ class Register extends Component {
     try {
      
       const data= await axios.post(this.state.urlBase+'Auth/register',this.state.form,{
+        // headers:{'accept-language': 'es,en;q=0.9'}
 
       });
      
