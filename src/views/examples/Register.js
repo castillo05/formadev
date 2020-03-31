@@ -72,7 +72,7 @@ class Register extends Component {
         passwordConfirmation:'',
         rolId:'3',
         socialId:null,
-        url:'https://formadev.net/confirm/'
+        url:'http://localhost:3000/confirm/'
       },
       loading:false,
       enabled:true,
@@ -149,7 +149,7 @@ class Register extends Component {
           password:res.password,
           rolId:'3',
           socialId:null,
-          url:`https://formadev.net/confirm/${res.email}`
+          url:`http://localhost:3000/${res.email}`
         }
       })
       this.setState({
