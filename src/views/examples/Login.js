@@ -16,7 +16,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React,{useState} from "react";
+import React,{useState,useEffect} from "react";
 
 // reactstrap components
 import {
@@ -34,62 +34,105 @@ import {
   Col,
   FormFeedback,
   Spinner,
-  Progress
+  Progress,
+  Alert,
+  Tooltip
 } from "reactstrap";
-
-// Utils
-import Utils from '../../utils';
+import {Link, Redirect,useHistory } from 'react-router-dom';
 // Joi validation
-import Joi from 'joi-browser';
-
-const {useInput, validation} = Utils;
-
-
-
+import * as yup from 'yup';
 
 
 const Login =(props)=> {
+  
   const [loading, setLoading] = useState(false)
-  const [progress, setProgress]=useState(5)
+  const [form,setForm] = useState({email:'',password:''})
+  const [errorMessage,setError]=useState([])
+  const [feedback,setFeedBack]=useState(false)
+  const [alert,setAlert]=useState({status:false,text:'',type:''})
+  const [showTooltip,setShowToolip]= useState({status:false,text:'',type:''})
+  const [showTooltip2,setShowToolip2]= useState({status:false,text:'',type:''})
 
-  const schema = validation.createSchema({
-    email:validation.schema.email,
-    password:validation.schema.passwordLogin
+  const toggle = () => setShowToolip(!showTooltip);
+  const toggle2 = () => setShowToolip2(!showTooltip2);
+
+  const schema = yup.object().shape({
+    email: yup.string().required('El correo es obligatorio').email('El correo debe contener un correo valido'),
+    password: yup.string().required('La contraseña es requerida')
   })
-  
-  const [input,setInput,submit]=useInput(schema);
 
-  const loginUser=async(e)=>{
-    e.preventDefault()
+  const handleChange=(e)=>{
+    setForm(
+      {
+       ...form,
+       [e.target.name]:e.target.value
+    }
+    )
+  }
   
-    if(submit()){
-      const login={
-        email:input.email,
-        password:input.password
-      }
-      if(login.email==='test@test.com' && login.password==='test'){
-        setLoading(true)
+  const loginUser=async(e)=>{
+    
+    e.preventDefault()
+   
+    schema.validate(form).then(res=>{
+      setFeedBack(false)
+      if(form.email==='test@test.com' && form.password==='test'){
+        setLoading(true)           
+          
+        setLoading(false)
+        setAlert({status:false})
+        setShowToolip({status:false})
+        setShowToolip2({status:false})
+        props.history.push('/admin')
+      }else{
+        if(form.email!=='test@test.com'){
+          setShowToolip({
+            status:true,
+            text:'Parece que escribiste mal tu correo. Verificalo!',
+            type:'email'
+          })
+          setShowToolip2({
+            status:false
+          })
+          
+        }else if(form.password!=='test'){
+          setShowToolip2({
+            status:true,
+            text:'Parece que escribiste mal tu contraseña. Verificala!',
+            type:'password'
+          })
+          setShowToolip({
+            status:false
+          })
+        }
         
-          
-          setTimeout(()=>{
-            for (let i = 1; i <= 100; i++) {
-            setProgress(i)
-            }
-          },500)
-          
-       
-        setTimeout(()=>{
-          setLoading(false)
-          setProgress(0)
-        },3000)
-         console.log(login);
+        setAlert(
+          {
+            status:true,
+            text:'Error. email o contraseña incorrecta!',
+            type:'danger'
+          }
+        )
       }
      
-    }
+    }).catch((err)=>{
+     
+      setError(err)
+      setFeedBack(true)
+    })
+   
   }
+
+  useEffect(() => {
+      
+      return ()=>{
+        
+      }
+  }, []);
  
     return (
       <>
+      {/* {isLogin ? <Redirect from="/auth/login" to="/admin"></Redirect>:null} */}
         <Col lg="5" md="7">
           <Card className="bg-secondary shadow border-0">
             <CardHeader className="bg-transparent pb-5">
@@ -143,40 +186,51 @@ const Login =(props)=> {
                   <InputGroup className="input-group-alternative">
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
-                        <i className="ni ni-email-83" />
+                        <i id='email' className="ni ni-email-83" />
                       </InputGroupText>
+                      <Tooltip className="bg-danger" placement='left' isOpen={showTooltip.status} autohide={true} target='email' toggle={toggle}>
+                        {showTooltip.text}
+                      </Tooltip>
                     </InputGroupAddon>
                     <Input
-                      invalid={Boolean(input.errors.email)}
+                      invalid={feedback}
                       placeholder='example@example.com'
                       type='email'
                       name='email'
-                      defaultValue={input.email}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      // defaultValue={input.email}
+                      onChange={(e)=>handleChange(e)}
+                      // onKeyDown={submit}
                     />
-                    <FormFeedback>{input.errors.email}</FormFeedback>
+                    <FormFeedback>{errorMessage.path!=='password'? errorMessage.message:''}</FormFeedback>
+                  
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
                   <InputGroup className="input-group-alternative">
                     <InputGroupAddon addonType="prepend">
                       <InputGroupText>
-                        <i className="ni ni-lock-circle-open" />
+                        <i id="password" className="ni ni-lock-circle-open" />
                       </InputGroupText>
+                      <Tooltip placement='left' isOpen={showTooltip2.status} autohide={true} target='password' toggle={toggle2}>
+                        {showTooltip2.text}
+                      </Tooltip>
                     </InputGroupAddon>
                     <Input
-                      invalid={Boolean(input.errors.password)}
+                       invalid={feedback}
                       placeholder='******'
                       type='password'
                       name='password'
-                      defaultValue={input.password}
-                      onChange={setInput}
-                      onKeyDown={submit}
+                      // defaultValue={input.password}
+                      onChange={(e)=>handleChange(e)}
+                      // onKeyDown={submit}
                     />
-                    <FormFeedback>{input.errors.password}</FormFeedback>
+                    <FormFeedback>{errorMessage.path==='password'? errorMessage.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
+                {(alert.status) &&
+                <Alert color={alert.type}>
+                  {alert.text}
+                </Alert>}
                 <div className="custom-control custom-control-alternative custom-checkbox">
                   <input
                     className="custom-control-input"
@@ -192,10 +246,10 @@ const Login =(props)=> {
                 </div>
                 <div className="text-center">
                   <Button onClick={(e)=>loginUser(e)} className="my-4" color="primary" disabled={loading} type="button">
+                  {loading ? <Spinner style={{ width: '3rem', height: '3rem' }} color="danger" type="grow"></Spinner> : 'Sing In'}
                     
-                    Sing In
                   </Button>
-                  {loading ? <Progress striped color="success" value={progress} >{progress} %</Progress> : null}
+                 
                 </div>
               </Form>
             </CardBody>

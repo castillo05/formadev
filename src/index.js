@@ -25,12 +25,14 @@ import "assets/scss/argon-dashboard-react.scss";
 
 import AdminLayout from "layouts/Admin.js";
 import AuthLayout from "layouts/Auth.js";
+import Confirm from './views/pages/Confirm';
 
 ReactDOM.render(
   <BrowserRouter>
     <Switch>
       <Route path="/admin" render={props => <AdminLayout {...props} />} />
       <Route path="/auth" render={props => <AuthLayout {...props} />} />
+      <Route path="/confirm/:email" component={Confirm}></Route>
       <Redirect from="/" to="/auth" />
     </Switch>
   </BrowserRouter>,
