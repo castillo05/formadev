@@ -149,7 +149,7 @@ class Register extends Component {
           password:res.password,
           rolId:'3',
           socialId:null,
-          url:`http://localhost:3000/${res.email}`
+          url:`http://localhost:3000/confirm/${res.email}`
         }
       })
       this.setState({

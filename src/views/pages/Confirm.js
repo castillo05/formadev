@@ -22,8 +22,10 @@ const Confirm = (props) => {
             });
             if(req.data.message){
                 return setAlert({status:true,text:'Error!',description:req.data.message,type:'danger'})
+            }else if(req.data.data){
+                 props.history.push('/auth/login')
             }
-            props.history.push('/auth/login')
+           
             console.log(req)
         } catch (error) {
             setAlert({status:true,text:'Error!',description:'Disculpa al parecer a ocurrido un error al confirmar tu correo electronico, por favor ponte en contacto con nosotros lo antes posible Gracias...!',type:'danger'})
