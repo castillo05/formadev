@@ -53,8 +53,10 @@ const schema = yup.object().shape({
   password: yup.string()
   .required('La contraseña es requerida')
   .min(6,'La contraseña debe tener 6 caracteres'),
+  passwordConfirmation: yup.string()
+  .oneOf([yup.ref('password'), null], 'La Contraseña no coincide'),
   email: yup.string().required('El correo es obligatorio').email(),
-  username: yup.string().required('El nombre de usuario es obligatorio')  
+  name: yup.string().required('El nombre de usuario es obligatorio')  
 })
 
 class Register extends Component {
@@ -64,9 +66,10 @@ class Register extends Component {
     this.state={
       urlBase:'https://localhost:44354/api/',
       form:{
-        username:'',
+        name:'',
         email:'',
         password:'',
+        passwordConfirmation:'',
         rolId:'3',
         socialId:null,
         url:'https://formadev.net/confirm/'
@@ -81,7 +84,7 @@ class Register extends Component {
       check:false,
       messageError:[],
       labels:{
-        username:'',
+        name:'',
         email:'',
         password:''
       },
@@ -141,7 +144,7 @@ class Register extends Component {
       this.setState({
         register:true,
         form:{
-          username:res.username,
+          name:res.name,
           email:res.email,
           password:res.password,
           rolId:'3',
@@ -306,11 +309,11 @@ render(){
                      invalid={this.state.feedback}
                      placeholder='Nombre del Usuario'
                      type='text'
-                     name='username'
+                     name='name'
                      onChange={this.handleChange}
                      onKeyUp={this.handleKeyDown}
                      />
-                     <FormFeedback>{this.state.messageError.path==='username'? this.state.messageError.message:''}</FormFeedback>
+                     <FormFeedback>{this.state.messageError.path==='name'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 <FormGroup>
@@ -358,6 +361,34 @@ render(){
                      !Este campo requiere entre 8 y 10 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial para mayor seguridad!
                   </Tooltip>
                     <FormFeedback>{this.state.messageError.path==='password'? this.state.messageError.message:''}</FormFeedback>
+                  </InputGroup>
+                </FormGroup>
+                <FormGroup>
+                  <InputGroup className="input-group-alternative">
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText>
+                        <i className="ni ni-lock-circle-open" />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input 
+                      invalid={this.state.feedback}
+                      disabled={this.state.messageError.path==='passwordConfirmation' ? false:null}
+                      placeholder='passwordConfirmation'
+                      type={this.state.verPass ? 'text' : 'password'}
+                      name='passwordConfirmation'
+                      onChange={this.handleChange}
+                      onKeyUp={this.handleKeyDown}
+                    />
+                     <InputGroupText>
+                    <i onClick={() => { !this.state.verPass?this.setState({verPass:true}):this.setState({verPass:false})}} id='verPass' className={this.state.verPass ? 'fas fa-eye-slash' : 'fas fa-eye'} />
+                  </InputGroupText>
+                  <InputGroupText>
+                    <i id='DisabledAutoHideExample' className='ni ni-air-baloon' />
+                  </InputGroupText>
+                  <Tooltip placement='top' isOpen={this.state.tooltipOpen} autohide={false} target='DisabledAutoHideExample' toggle={this.toggle}>
+                     !Este campo requiere entre 8 y 10 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial para mayor seguridad!
+                  </Tooltip>
+                    <FormFeedback>{this.state.messageError.path==='passwordConfirmation'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 {(this.state.alert.status) &&
