@@ -55,14 +55,18 @@ const schema = yup.object().shape({
   .min(6,'La contraseña debe tener 6 caracteres'),
   passwordConfirmation: yup.string()
   .oneOf([yup.ref('password'), null], 'La Contraseña no coincide'),
+  username:yup.string().required(),
   email: yup.string().required('El correo es obligatorio').email(),
-  name: yup.string().required('El nombre de usuario es obligatorio')  
+  name: yup.string().required('El nombre de usuario es obligatorio')
 })
 
 class Register extends Component {
 
   constructor(props) {
     super()
+    this.handleChange = this.handleChange.bind(this);
+    this.input = React.createRef();
+    this.username=React.createRef();
     this.state={
       urlBase:'https://localhost:44354/api/',
       form:{
@@ -70,6 +74,7 @@ class Register extends Component {
         email:'',
         password:'',
         passwordConfirmation:'',
+        username:'',
         rolId:'3',
         socialId:null,
         url:'http://localhost:3000/confirm/'
@@ -139,14 +144,16 @@ class Register extends Component {
 
   // Validacion de campos
   setValidate=async(e)=>{
+    
     await schema.validate(this.state.form).then(res=>{
-      
+      console.log(this.state.form)
       this.setState({
         register:true,
         form:{
           name:res.name,
           email:res.email,
           password:res.password,
+          username:this.state.form.username.replace(/\s+/g,'').trim().toLocaleLowerCase(),
           rolId:'3',
           socialId:null,
           url:`http://localhost:3000/confirm/${res.email}`
@@ -159,7 +166,7 @@ class Register extends Component {
         feedback:false
       })
     }).catch((err)=>{
-        
+        console.log(err)
         this.setState({
           feedback:true,
           register:false,
@@ -170,14 +177,30 @@ class Register extends Component {
 
 
   handleChange=(e)=>{
+   
     this.setState({
       form:{
         ...this.state.form,
-        [e.target.name]:e.target.value
+        [e.target.name]:e.target.value,
+       
+        username:this.state.form.name.replace(/\s+/g,'').trim().toLocaleLowerCase()
       }
     })
-  
 }
+
+handleChangeUser=e=>{
+  this.setState({
+    form:{
+      ...this.state.form,
+      [e.target.name]:e.target.value,
+     
+      username:e.target.value
+    }
+  })
+}
+
+
+
   handleKeyDown=e=>{
     this.levelPass()
     this.setValidate()
@@ -310,7 +333,9 @@ render(){
                      placeholder='Nombre del Usuario'
                      type='text'
                      name='name'
+                     ref={this.input}
                      onChange={this.handleChange}
+                     onKeyUpCapture={this.handleChangeUser}
                      onKeyUp={this.handleKeyDown}
                      />
                      <FormFeedback>{this.state.messageError.path==='name'? this.state.messageError.message:''}</FormFeedback>
@@ -325,7 +350,6 @@ render(){
                     </InputGroupAddon>
                     <Input
                     invalid={this.state.feedback}
-                    disabled={this.state.messageError.path==='email' ? false:null}
                      placeholder='example@example.com'
                      type='text'
                      name='email'
@@ -344,7 +368,6 @@ render(){
                     </InputGroupAddon>
                     <Input 
                       invalid={this.state.feedback}
-                      disabled={this.state.messageError.path==='password' ? false:null}
                       placeholder='Password'
                       type={this.state.verPass ? 'text' : 'password'}
                       name='password'
@@ -372,7 +395,6 @@ render(){
                     </InputGroupAddon>
                     <Input 
                       invalid={this.state.feedback}
-                      disabled={this.state.messageError.path==='passwordConfirmation' ? false:null}
                       placeholder='passwordConfirmation'
                       type={this.state.verPass ? 'text' : 'password'}
                       name='passwordConfirmation'
@@ -389,6 +411,27 @@ render(){
                      !Este campo requiere entre 8 y 10 caracteres entre  letras mayúscula, minúsculas un número y almeno un carácter especial para mayor seguridad!
                   </Tooltip>
                     <FormFeedback>{this.state.messageError.path==='passwordConfirmation'? this.state.messageError.message:''}</FormFeedback>
+                  </InputGroup>
+                </FormGroup>
+                <FormGroup>
+                  <InputGroup className="input-group-alternative mb-3">
+                    <InputGroupAddon addonType="prepend">
+                      <InputGroupText>
+                        <i className="ni ni-email-83" />
+                      </InputGroupText>
+                    </InputGroupAddon>
+                    <Input
+                    invalid={this.state.feedback}
+                     placeholder='Nombre de usuario'
+                     type='text'
+                     name='username'
+                     onChange={this.handleChange}
+                     onKeyUp={this.handleKeyDown}
+                     onKeyUpCapture={this.handleChangeUser}
+                     defaultValue={this.state.form.name.replace(/\s+/g,'').trim().toLocaleLowerCase() || ''}
+                     ref={this.username}
+                    />
+                    <FormFeedback>{this.state.messageError.path==='username'? this.state.messageError.message:''}</FormFeedback>
                   </InputGroup>
                 </FormGroup>
                 {(this.state.alert.status) &&
