@@ -153,6 +153,7 @@ class Register extends Component {
           name:res.name,
           email:res.email,
           password:res.password,
+          passwordConfirmation:res.passwordConfirmation,
           username:this.state.form.username.replace(/\s+/g,'').trim().toLocaleLowerCase(),
           rolId:'3',
           socialId:null,
