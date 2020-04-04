@@ -181,11 +181,20 @@ class Register extends Component {
     this.setState({
       form:{
         ...this.state.form,
-        [e.target.name]:e.target.value,
-       
-        username:this.state.form.name.replace(/\s+/g,'').trim().toLocaleLowerCase()
+        [e.target.name]:e.target.value
       }
     })
+}
+
+handleChangeTest=e=>{
+  this.setState({
+    form:{
+      ...this.state.form,
+      [e.target.name]:e.target.value,
+     
+      username:this.state.form.name.replace(/\s+/g,'').trim().toLocaleLowerCase()
+    }
+  })
 }
 
 handleChangeUser=e=>{
@@ -336,6 +345,7 @@ render(){
                      ref={this.input}
                      onChange={this.handleChange}
                      onKeyUpCapture={this.handleChangeUser}
+                     onChangeCapture={this.handleChangeTest}
                      onKeyUp={this.handleKeyDown}
                      />
                      <FormFeedback>{this.state.messageError.path==='name'? this.state.messageError.message:''}</FormFeedback>
