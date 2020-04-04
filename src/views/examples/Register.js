@@ -44,8 +44,8 @@ import {
 import * as yup from 'yup';
 // import { options } from "joi-browser";
 // Axios
-import axios from 'axios';
 import {customAxios} from '../../axiosUtils';
+
 
 var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#.*+/\$%\^&\*])(?=.{8,})");
 var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
@@ -69,7 +69,7 @@ class Register extends Component {
     this.input = React.createRef();
     this.username=React.createRef();
     this.state={
-      urlBase:process.env.REACT_APP_PUBLIC_URL,
+     
       form:{
         name:'',
         email:'',
@@ -78,7 +78,7 @@ class Register extends Component {
         username:'',
         rolId:'3',
         socialId:null,
-        url:'http://localhost:3000/confirm/'
+        url:`${process.env.REACT_APP_PUBLIC_URL}confirm/`
       },
       loading:false,
       enabled:true,
@@ -145,7 +145,6 @@ class Register extends Component {
 
   // Validacion de campos
   setValidate=async(e)=>{
-    
     await schema.validate(this.state.form).then(res=>{
       console.log(this.state.form)
       this.setState({
@@ -158,7 +157,7 @@ class Register extends Component {
           username:this.state.form.username.replace(/\s+/g,'').trim().toLocaleLowerCase(),
           rolId:'3',
           socialId:null,
-          url:`http://localhost:3000/confirm/${res.email}`
+          url:`${process.env.REACT_APP_PUBLIC_URL}confirm/${res.email}`
         }
       })
       this.setState({
@@ -168,7 +167,6 @@ class Register extends Component {
         feedback:false
       })
     }).catch((err)=>{
-        console.log(err)
         this.setState({
           feedback:true,
           register:false,
@@ -212,6 +210,7 @@ handleChangeUser=e=>{
   postRegister=async()=>{
     try {
       customAxios('Auth/register',this.state.form,'post').then(data=>{
+        console.log(data)
         if(data.data.message){
           this.setState({
           alert:{
@@ -227,7 +226,6 @@ handleChangeUser=e=>{
       }).catch(error=>{
         console.log(error)
       })
-
           
     } catch (error) {
       console.log(error)
