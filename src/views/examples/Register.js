@@ -45,6 +45,7 @@ import * as yup from 'yup';
 // import { options } from "joi-browser";
 // Axios
 import axios from 'axios';
+import {customAxios} from '../../axiosUtils';
 
 var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#.*+/\$%\^&\*])(?=.{8,})");
 var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
@@ -68,7 +69,7 @@ class Register extends Component {
     this.input = React.createRef();
     this.username=React.createRef();
     this.state={
-      urlBase:'https://localhost:44354/api/',
+      urlBase:process.env.REACT_APP_PUBLIC_URL,
       form:{
         name:'',
         email:'',
@@ -210,13 +211,8 @@ handleChangeUser=e=>{
   // Metodo para registro de usuarios
   postRegister=async()=>{
     try {
-     
-      const data= await axios.post(this.state.urlBase+'Auth/register',this.state.form,{
-        // headers:{'accept-language': 'es,en;q=0.9'}
-
-      });
-     
-      if(data.data.message){
+      customAxios('Auth/register',this.state.form,'post').then(data=>{
+        if(data.data.message){
           this.setState({
           alert:{
             type:'danger',
@@ -227,7 +223,12 @@ handleChangeUser=e=>{
         })
       }else{
         this.props.history.push('/auth/login')
-      }      
+      }  
+      }).catch(error=>{
+        console.log(error)
+      })
+
+          
     } catch (error) {
       console.log(error)
     }
